@@ -157,7 +157,7 @@ fn open_settings_window(app: &AppHandle) {
     } else {
         let _ = WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("settings.html".into()))
             .title("KeyGlow Settings")
-            .inner_size(400.0, 175.0)
+            .inner_size(400.0, 215.0)
             .resizable(false)
             .center()
             .build();
@@ -242,6 +242,14 @@ pub fn run() {
     tauri::Builder::default()
         .manage(state.clone())
         .invoke_handler(tauri::generate_handler![get_settings, save_settings])
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                if window.label() == "settings" {
+                    let _ = window.hide();
+                    api.prevent_close();
+                }
+            }
+        })
         .setup({
             let state = state.clone();
             move |app| {
