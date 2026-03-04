@@ -157,7 +157,7 @@ fn open_settings_window(app: &AppHandle) {
     } else {
         let _ = WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("settings.html".into()))
             .title("KeyGlow Settings")
-            .inner_size(440.0, 200.0)
+            .inner_size(400.0, 175.0)
             .resizable(false)
             .center()
             .build();

@@ -6,111 +6,186 @@
     <title>KeyGlow Settings</title>
     <script type="module" src="/src/settings.ts"></script>
     <style>
+      :root {
+        color-scheme: light dark;
+
+        --bg: #e8e8ed;
+        --text: #1d1d1f;
+        --text-secondary: #6e6e73;
+        --text-error: #ff3b30;
+        --input-bg: #ffffff;
+        --input-border: rgba(0, 0, 0, 0.14);
+        --input-border-focus: #007aff;
+        --input-border-error: #ff3b30;
+        --btn-cancel-bg: rgba(0, 0, 0, 0.07);
+        --btn-cancel-border: rgba(0, 0, 0, 0.14);
+        --btn-cancel-text: #1d1d1f;
+        --btn-save-bg: #007aff;
+        --btn-save-text: #ffffff;
+        --btn-save-disabled: rgba(0, 122, 255, 0.28);
+        --divider: rgba(0, 0, 0, 0.1);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #1e1e1e;
+          --text: #f0f0f0;
+          --text-secondary: #98989d;
+          --input-bg: rgba(255, 255, 255, 0.07);
+          --input-border: rgba(255, 255, 255, 0.1);
+          --btn-cancel-bg: rgba(255, 255, 255, 0.08);
+          --btn-cancel-border: rgba(255, 255, 255, 0.1);
+          --btn-cancel-text: #f0f0f0;
+          --btn-save-disabled: rgba(0, 122, 255, 0.32);
+          --divider: rgba(255, 255, 255, 0.08);
+        }
+      }
+
       * {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
       }
+
+      html,
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue",
+          sans-serif;
         font-size: 13px;
-        background: #f2f2f7;
-        color: #1c1c1e;
-        padding: 20px 24px 16px;
+        background: var(--bg);
+        color: var(--text);
+        display: flex;
+        flex-direction: column;
+        padding: 18px 20px 16px;
         user-select: none;
         -webkit-user-select: none;
+        -webkit-font-smoothing: antialiased;
       }
-      h2 {
-        font-size: 15px;
-        font-weight: 600;
-        margin-bottom: 16px;
-        color: #1c1c1e;
+
+      .field {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
       }
+
       label {
-        display: block;
-        font-weight: 500;
-        margin-bottom: 4px;
-        color: #3c3c43;
-      }
-      .hint {
         font-size: 11px;
-        color: #8e8e93;
-        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 5px;
       }
+
       input {
         width: 100%;
-        padding: 7px 10px;
-        border: 1px solid #c6c6c8;
-        border-radius: 8px;
+        padding: 6px 9px;
+        border: 1px solid var(--input-border);
+        border-radius: 6px;
         font-size: 13px;
-        font-family: "SF Mono", ui-monospace, monospace;
-        letter-spacing: 0.5px;
-        background: white;
+        font-family: "SF Mono", ui-monospace, "Menlo", monospace;
+        letter-spacing: 0.3px;
+        background: var(--input-bg);
+        color: var(--text);
         outline: none;
-        transition: border-color 0.15s, box-shadow 0.15s;
+        transition: border-color 0.12s, box-shadow 0.12s;
+        -webkit-font-smoothing: antialiased;
       }
+
       input:focus {
-        border-color: #007aff;
-        box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
+        border-color: var(--input-border-focus);
+        box-shadow: 0 0 0 2.5px rgba(0, 122, 255, 0.22);
       }
+
       input.invalid {
-        border-color: #ff3b30;
-        box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.15);
+        border-color: var(--input-border-error);
+        box-shadow: 0 0 0 2.5px rgba(255, 59, 48, 0.18);
       }
-      .error-msg {
-        color: #ff3b30;
+
+      .hint {
         font-size: 11px;
+        color: var(--text-secondary);
         margin-top: 5px;
+        line-height: 1.4;
+      }
+
+      .error-msg {
+        font-size: 11px;
+        color: var(--text-error);
+        margin-top: 4px;
         min-height: 15px;
       }
+
+      .divider {
+        height: 1px;
+        background: var(--divider);
+        margin: 14px -20px 0;
+      }
+
       .buttons {
         display: flex;
         justify-content: flex-end;
         gap: 8px;
-        margin-top: 18px;
+        padding-top: 12px;
       }
+
       button {
-        padding: 5px 16px;
-        border-radius: 7px;
+        height: 26px;
+        padding: 0 14px;
+        border-radius: 6px;
         font-size: 13px;
         font-family: inherit;
         cursor: pointer;
         border: 1px solid transparent;
-        transition: background 0.1s;
+        -webkit-font-smoothing: antialiased;
+        transition: filter 0.1s;
       }
+
       #cancel {
-        background: white;
-        border-color: #c6c6c8;
-        color: #1c1c1e;
+        background: var(--btn-cancel-bg);
+        border-color: var(--btn-cancel-border);
+        color: var(--btn-cancel-text);
       }
-      #cancel:hover {
-        background: #ebebf0;
+
+      #cancel:active {
+        filter: brightness(0.92);
       }
+
       #save {
-        background: #007aff;
-        color: white;
+        background: var(--btn-save-bg);
+        color: var(--btn-save-text);
+        font-weight: 500;
       }
-      #save:hover:not(:disabled) {
-        background: #0066d6;
+
+      #save:active:not(:disabled) {
+        filter: brightness(0.88);
       }
+
       #save:disabled {
-        background: #b3d1ff;
+        background: var(--btn-save-disabled);
         cursor: not-allowed;
       }
     </style>
   </head>
   <body>
-    <h2>Settings</h2>
-    <label for="mac">Key Light MAC Address</label>
-    <div class="hint">Find this on the device label or in your router's device list.</div>
-    <input
-      type="text"
-      id="mac"
-      spellcheck="false"
-      autocomplete="off"
-      placeholder="xx:xx:xx:xx:xx:xx"
-    />
-    <div class="error-msg" id="error"></div>
+    <div class="field">
+      <label for="mac">Key Light MAC Address</label>
+      <input
+        type="text"
+        id="mac"
+        spellcheck="false"
+        autocomplete="off"
+        placeholder="xx:xx:xx:xx:xx:xx"
+      />
+      <div class="error-msg" id="error"></div>
+      <div class="hint">Find this on the device label or in your router's device list.</div>
+    </div>
+    <div class="divider"></div>
     <div class="buttons">
       <button id="cancel">Cancel</button>
       <button id="save">Save</button>
