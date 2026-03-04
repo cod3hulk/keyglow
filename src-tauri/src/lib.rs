@@ -14,10 +14,11 @@ use tauri::{
 
 const KEYLIGHT_PORT: u16 = 9123;
 
-/// Hostnames to try in order. The Fritz!Box entry matches the user's network;
-/// the .local entry works on any network via macOS Bonjour/mDNS.
+/// Try the bare hostname first — the OS appends configured search domains
+/// (e.g. fritz.box) automatically via getaddrinfo. Fall back to the explicit
+/// .local mDNS name for networks where no search domain is set.
 const KEYLIGHT_HOSTNAMES: &[&str] = &[
-    "elgato-key-light.fritz.box",
+    "elgato-key-light",
     "elgato-key-light.local",
 ];
 
