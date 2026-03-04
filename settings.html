@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KeyGlow Settings</title>
+    <script type="module" src="/src/settings.ts"></script>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif;
+        font-size: 13px;
+        background: #f2f2f7;
+        color: #1c1c1e;
+        padding: 20px 24px 16px;
+        user-select: none;
+        -webkit-user-select: none;
+      }
+      h2 {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: #1c1c1e;
+      }
+      label {
+        display: block;
+        font-weight: 500;
+        margin-bottom: 4px;
+        color: #3c3c43;
+      }
+      .hint {
+        font-size: 11px;
+        color: #8e8e93;
+        margin-bottom: 8px;
+      }
+      input {
+        width: 100%;
+        padding: 7px 10px;
+        border: 1px solid #c6c6c8;
+        border-radius: 8px;
+        font-size: 13px;
+        font-family: "SF Mono", ui-monospace, monospace;
+        letter-spacing: 0.5px;
+        background: white;
+        outline: none;
+        transition: border-color 0.15s, box-shadow 0.15s;
+      }
+      input:focus {
+        border-color: #007aff;
+        box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
+      }
+      input.invalid {
+        border-color: #ff3b30;
+        box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.15);
+      }
+      .error-msg {
+        color: #ff3b30;
+        font-size: 11px;
+        margin-top: 5px;
+        min-height: 15px;
+      }
+      .buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 18px;
+      }
+      button {
+        padding: 5px 16px;
+        border-radius: 7px;
+        font-size: 13px;
+        font-family: inherit;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: background 0.1s;
+      }
+      #cancel {
+        background: white;
+        border-color: #c6c6c8;
+        color: #1c1c1e;
+      }
+      #cancel:hover {
+        background: #ebebf0;
+      }
+      #save {
+        background: #007aff;
+        color: white;
+      }
+      #save:hover:not(:disabled) {
+        background: #0066d6;
+      }
+      #save:disabled {
+        background: #b3d1ff;
+        cursor: not-allowed;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Settings</h2>
+    <label for="mac">Key Light MAC Address</label>
+    <div class="hint">Find this on the device label or in your router's device list.</div>
+    <input
+      type="text"
+      id="mac"
+      spellcheck="false"
+      autocomplete="off"
+      placeholder="xx:xx:xx:xx:xx:xx"
+    />
+    <div class="error-msg" id="error"></div>
+    <div class="buttons">
+      <button id="cancel">Cancel</button>
+      <button id="save">Save</button>
+    </div>
+  </body>
+</html>

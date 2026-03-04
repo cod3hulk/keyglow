@@ -1,35 +1,85 @@
 use std::{
+    fs,
     io::{BufRead, BufReader},
     process::{Command, Stdio},
     sync::{Arc, Mutex},
     thread,
 };
 
+use serde::{Deserialize, Serialize};
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem},
     tray::TrayIconBuilder,
-    AppHandle,
+    AppHandle, Manager, WebviewUrl, WebviewWindowBuilder,
 };
 
-const KEYLIGHT_MAC: &str = "3c:6a:9d:2d:2e:68";
+const DEFAULT_MAC: &str = "3c:6a:9d:2d:2e:68";
 const KEYLIGHT_PORT: u16 = 9123;
 
-#[derive(Clone, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Settings {
+    pub keylight_mac: String,
+}
+
+impl Default for Settings {
+    fn default() -> Self {
+        Self {
+            keylight_mac: DEFAULT_MAC.to_string(),
+        }
+    }
+}
+
+#[derive(Clone)]
 struct AppState {
+    keylight_mac: String,
     keylight_ip: Option<String>,
     light_on: bool,
     auto_mode: bool,
     camera_active: bool,
 }
 
+impl Default for AppState {
+    fn default() -> Self {
+        Self {
+            keylight_mac: DEFAULT_MAC.to_string(),
+            keylight_ip: None,
+            light_on: false,
+            auto_mode: true,
+            camera_active: false,
+        }
+    }
+}
+
 type SharedState = Arc<Mutex<AppState>>;
 
-fn discover_keylight() -> Option<String> {
+fn settings_path(app: &AppHandle) -> Option<std::path::PathBuf> {
+    app.path().app_config_dir().ok().map(|p| p.join("settings.json"))
+}
+
+fn load_settings(app: &AppHandle) -> Settings {
+    settings_path(app)
+        .and_then(|p| fs::read_to_string(p).ok())
+        .and_then(|s| serde_json::from_str(&s).ok())
+        .unwrap_or_default()
+}
+
+fn persist_settings(app: &AppHandle, settings: &Settings) {
+    if let Some(path) = settings_path(app) {
+        if let Some(parent) = path.parent() {
+            let _ = fs::create_dir_all(parent);
+        }
+        if let Ok(json) = serde_json::to_string_pretty(settings) {
+            let _ = fs::write(path, json);
+        }
+    }
+}
+
+fn discover_keylight(mac: &str) -> Option<String> {
     let output = Command::new("arp").arg("-an").output().ok()?;
     let text = String::from_utf8_lossy(&output.stdout);
 
     for line in text.lines() {
-        if line.to_lowercase().contains(KEYLIGHT_MAC) {
+        if line.to_lowercase().contains(&mac.to_lowercase()) {
             let ip = line.split('(').nth(1)?.split(')').next()?.to_string();
             if !ip.is_empty() && ip != "incomplete" {
                 return Some(ip);
@@ -63,21 +113,13 @@ fn build_menu(app: &AppHandle, state: &AppState) -> tauri::Result<Menu<tauri::Wr
     } else {
         "Camera: Inactive"
     };
-    let light_label = if state.light_on {
-        "Light: ON"
-    } else {
-        "Light: OFF"
-    };
+    let light_label = if state.light_on { "Light: ON" } else { "Light: OFF" };
     let auto_label = if state.auto_mode {
         "Auto Mode: ON  ✓"
     } else {
         "Auto Mode: OFF"
     };
-    let toggle_label = if state.light_on {
-        "Turn Light Off"
-    } else {
-        "Turn Light On"
-    };
+    let toggle_label = if state.light_on { "Turn Light Off" } else { "Turn Light On" };
     let manual_enabled = state.keylight_ip.is_some();
 
     Menu::with_items(
@@ -88,13 +130,9 @@ fn build_menu(app: &AppHandle, state: &AppState) -> tauri::Result<Menu<tauri::Wr
             &MenuItem::with_id(app, "light_status", light_label, false, None::<&str>)?,
             &PredefinedMenuItem::separator(app)?,
             &MenuItem::with_id(app, "auto_mode", auto_label, true, None::<&str>)?,
-            &MenuItem::with_id(
-                app,
-                "toggle_light",
-                toggle_label,
-                manual_enabled,
-                None::<&str>,
-            )?,
+            &MenuItem::with_id(app, "toggle_light", toggle_label, manual_enabled, None::<&str>)?,
+            &PredefinedMenuItem::separator(app)?,
+            &MenuItem::with_id(app, "settings", "Settings...", true, None::<&str>)?,
             &PredefinedMenuItem::separator(app)?,
             &MenuItem::with_id(app, "rediscover", "Rediscover Key Light", true, None::<&str>)?,
             &PredefinedMenuItem::separator(app)?,
@@ -109,6 +147,20 @@ fn update_tray(app: &AppHandle, state: &SharedState) {
         if let Ok(menu) = build_menu(app, &snapshot) {
             let _ = tray.set_menu(Some(menu));
         }
+    }
+}
+
+fn open_settings_window(app: &AppHandle) {
+    if let Some(win) = app.get_webview_window("settings") {
+        let _ = win.show();
+        let _ = win.set_focus();
+    } else {
+        let _ = WebviewWindowBuilder::new(app, "settings", WebviewUrl::App("settings.html".into()))
+            .title("KeyGlow Settings")
+            .inner_size(440.0, 200.0)
+            .resizable(false)
+            .center()
+            .build();
     }
 }
 
@@ -163,28 +215,54 @@ fn start_camera_monitor(state: SharedState, app: AppHandle) {
     });
 }
 
+#[tauri::command]
+fn get_settings(state: tauri::State<SharedState>) -> Settings {
+    let s = state.lock().unwrap();
+    Settings {
+        keylight_mac: s.keylight_mac.clone(),
+    }
+}
+
+#[tauri::command]
+fn save_settings(app: AppHandle, state: tauri::State<SharedState>, mac: String) {
+    persist_settings(&app, &Settings { keylight_mac: mac.clone() });
+    let ip = discover_keylight(&mac);
+    {
+        let mut s = state.lock().unwrap();
+        s.keylight_mac = mac;
+        s.keylight_ip = ip;
+    }
+    update_tray(&app, state.inner());
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let state: SharedState = Arc::new(Mutex::new(AppState {
-        auto_mode: true,
-        ..Default::default()
-    }));
+    let state: SharedState = Arc::new(Mutex::new(AppState::default()));
 
     tauri::Builder::default()
+        .manage(state.clone())
+        .invoke_handler(tauri::generate_handler![get_settings, save_settings])
         .setup({
             let state = state.clone();
             move |app| {
                 #[cfg(target_os = "macos")]
                 app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
+                // Load persisted settings
+                let saved = load_settings(app.handle());
+                {
+                    let mut s = state.lock().unwrap();
+                    s.keylight_mac = saved.keylight_mac.clone();
+                }
+
                 // Discover Key Light on startup
                 {
                     let mut s = state.lock().unwrap();
-                    s.keylight_ip = discover_keylight();
+                    s.keylight_ip = discover_keylight(&s.keylight_mac.clone());
                     if let Some(ref ip) = s.keylight_ip {
                         println!("[KeyGlow] Found Key Light at {}", ip);
                     } else {
-                        println!("[KeyGlow] Key Light not found — will retry on Rediscover");
+                        println!("[KeyGlow] Key Light not found — use Rediscover or check Settings");
                     }
                 }
 
@@ -216,8 +294,10 @@ pub fn run() {
                                     update_tray(app, &state);
                                 }
                             }
+                            "settings" => open_settings_window(app),
                             "rediscover" => {
-                                let ip = discover_keylight();
+                                let mac = state.lock().unwrap().keylight_mac.clone();
+                                let ip = discover_keylight(&mac);
                                 state.lock().unwrap().keylight_ip = ip;
                                 update_tray(app, &state);
                             }
