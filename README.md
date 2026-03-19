@@ -1,7 +1,7 @@
 # KeyGlow
 
 <p align="center">
-  <img src="Resources/icon.png" alt="KeyGlow App Icon" width="128">
+  <img src="Resources/icon.png" alt="KeyGlow App Icon" width="256">
 </p>
 
 A lightweight macOS menu bar app that automatically controls your **Elgato Key Light** based on camera activity. When your camera starts streaming, the light turns on. When the stream stops, it turns off. You can also manually adjust brightness and color temperature directly from the menu bar.
