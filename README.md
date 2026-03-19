@@ -18,46 +18,50 @@ No background script, no terminal window — just a native menu bar icon.
 | `Key Light: <ip>` | Resolved IP address, or "Not Found" |
 | `Camera: Active / Inactive` | Current camera state |
 | `Light: ON / OFF` | Current light state |
-| `Auto Mode: ON ✓ / OFF` | Toggle automatic on/off with camera |
+| `Auto Mode: ON / OFF` | Toggle automatic on/off with camera |
 | `Turn Light On / Off` | Manual override |
+| `Brightness` | Slider to adjust brightness (3–100%) |
+| `Color Temperature` | Slider to adjust color temperature (2900K–7000K) |
 | `Rediscover Key Light` | Re-run DNS discovery |
 | `Quit` | Exit the app |
 
 ## Requirements
 
-- macOS (tested on macOS Sequoia)
-- [Rust](https://rustup.rs) + Cargo
-- Node.js + npm
+- macOS 13+ (Ventura or later)
 - An Elgato Key Light connected to the same local network
 
 ## Development
 
-Install dependencies and start in dev mode:
+Build and run in debug mode:
 
 ```sh
-npm install
-npm run tauri dev
+swift build
+.build/debug/KeyGlow
 ```
 
-The Rust backend compiles and launches the app. Changes to the frontend (TypeScript/HTML) hot-reload automatically. Rust changes require a recompile.
+Or using the Makefile:
+
+```sh
+make run
+```
 
 ## Build
 
 Produce a release `.app` bundle:
 
 ```sh
-npm run tauri build
+make bundle
 ```
 
-The output is placed in `src-tauri/target/release/bundle/macos/KeyGlow.app`. You can move it to `/Applications` like any other macOS app.
+The output is `KeyGlow.app` in the project root. You can move it to `/Applications` like any other macOS app.
 
 ## Tech stack
 
 | Layer | Technology |
 |---|---|
-| App framework | [Tauri v2](https://tauri.app) |
-| Backend | Rust |
-| Frontend | TypeScript + Vite (minimal — tray-only app) |
-| Light control | HTTP via `reqwest` (blocking) |
+| Language | Swift |
+| UI framework | AppKit (NSStatusItem + NSMenu) |
+| Light control | URLSession (Elgato HTTP API) |
 | Camera detection | `log stream` subprocess (UVC extension events) |
-| Host discovery | `std::net::ToSocketAddrs` (system DNS + mDNS) |
+| Host discovery | CFHost (system DNS + mDNS) |
+| Build system | Swift Package Manager |
