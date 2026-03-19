@@ -4,14 +4,22 @@
   <img src="Resources/icon.png" alt="KeyGlow App Icon" width="128">
 </p>
 
-A lightweight macOS menu bar app that automatically turns your **Elgato Key Light** on and off based on your camera activity. When your camera starts streaming, the light turns on. When the stream stops, it turns off.
+A lightweight macOS menu bar app that automatically controls your **Elgato Key Light** based on camera activity. When your camera starts streaming, the light turns on. When the stream stops, it turns off. You can also manually adjust brightness and color temperature directly from the menu bar.
 
 No background script, no terminal window — just a native menu bar icon.
+
+## Features
+
+- **Automatic light control** — monitors macOS system logs for camera events and toggles the light accordingly
+- **Brightness adjustment** — change brightness from 3–100% using a slider in the menu bar
+- **Color temperature adjustment** — adjust color temperature from 2900K–7000K to match your environment
+- **Auto-discovery** — finds the Key Light on your local network via DNS and Bonjour/mDNS
+- **Manual override** — turn the light on or off independently of camera state
 
 ## How it works
 
 - Monitors macOS system logs for UVC camera events (`Start Stream` / `Stop Stream`)
-- Discovers the Key Light on the local network by resolving the hostname `elgato-key-light` (the OS appends your configured DNS search domain, e.g. `elgato-key-light.fritz.box`). Falls back to `elgato-key-light.local` via Bonjour/mDNS
+- Discovers the Key Light on the local network via DNS hostname resolution, falling back to Bonjour/mDNS
 - Controls the light via the [Elgato Lights HTTP API](https://github.com/adamesch/elgato-key-light-api) (`PUT /elgato/lights`)
 - Runs as a menu bar-only app (no Dock icon)
 
