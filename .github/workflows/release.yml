@@ -1,0 +1,45 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build app bundle
+        run: make bundle
+
+      - name: Zip app bundle
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          zip -r "KeyGlow-${VERSION}.zip" KeyGlow.app
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: KeyGlow ${{ github.ref_name }}
+          body: |
+            ## KeyGlow ${{ github.ref_name }}
+
+            A lightweight macOS menu bar app that automatically controls your Elgato Key Light based on camera activity.
+
+            ### Installation
+
+            1. Download `KeyGlow-*.zip` below
+            2. Unzip and move `KeyGlow.app` to `/Applications`
+            3. On first launch, right-click → Open to bypass Gatekeeper (app is unsigned)
+
+            ### Requirements
+
+            - macOS 13+ (Ventura or later)
+            - Elgato Key Light on the same local network
+          files: KeyGlow-*.zip
+          draft: false
+          prerelease: false
