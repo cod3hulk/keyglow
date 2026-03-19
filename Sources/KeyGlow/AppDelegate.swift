@@ -99,7 +99,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             label: "Brightness",
             minValue: 3, maxValue: 100,
             value: Double(brightness),
-            formatValue: { "\(Int($0))%" }
+            unit: "%",
+            gradientColors: [
+                NSColor(calibratedWhite: 0.25, alpha: 1),
+                NSColor(calibratedWhite: 1.0, alpha: 1),
+            ],
+            leadingIcon: "sun.min",
+            trailingIcon: "sun.max"
         )
         brightnessView.onValueChanged = { [weak self] value in
             guard let self, let ip = keyLightIP else { return }
@@ -117,7 +123,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             label: "Color Temperature",
             minValue: 2900, maxValue: 7000,
             value: Double(kelvin),
-            formatValue: { "\(Int($0))K" }
+            unit: "K",
+            gradientColors: [
+                NSColor(calibratedRed: 1.0, green: 0.65, blue: 0.25, alpha: 1),
+                NSColor(calibratedRed: 0.55, green: 0.75, blue: 1.0, alpha: 1),
+            ],
+            leadingIcon: "flame",
+            trailingIcon: "snowflake"
         )
         temperatureView.onValueChanged = { [weak self] kelvinValue in
             guard let self, let ip = keyLightIP else { return }
