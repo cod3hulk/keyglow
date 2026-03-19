@@ -17,9 +17,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = statusItem.button {
-            if let iconURL = Bundle.module.url(forResource: "icon-16@2x", withExtension: "png"),
+            if let iconURL = Bundle.module.url(forResource: "menubar-icon", withExtension: "svg"),
                let image = NSImage(contentsOf: iconURL) {
-                image.size = NSSize(width: 18, height: 18)
+                image.size = NSSize(width: 20, height: 20)
                 image.isTemplate = true
                 button.image = image
             } else {

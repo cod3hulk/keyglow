@@ -10,6 +10,7 @@ let package = Package(
             path: "Sources/KeyGlow",
             resources: [
                 .copy("Resources/icon-16@2x.png"),
+                .copy("Resources/menubar-icon.svg"),
             ]
         )
     ]
