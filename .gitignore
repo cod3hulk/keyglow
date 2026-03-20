@@ -1,3 +1,4 @@
 .build/
 .swiftpm/
 KeyGlow.app/
+.DS_Store
