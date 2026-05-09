@@ -14,7 +14,13 @@ make clean    # Clean build artifacts and app bundle
 
 For debug builds: `swift build` then `.build/debug/KeyGlow`
 
-There are no automated tests in this project.
+## Tests
+
+```bash
+swift test    # Run unit tests in Tests/KeyGlowTests
+```
+
+The test target covers pure logic only — temperature conversions, JSON parsing of Elgato responses, request-body construction (with clamping), and camera log-line classification. System-bound code (`URLSession` calls, `CFHost` discovery, `Process`-based log streaming, `SMAppService` registration, AppKit menu construction) is not unit-tested; verify those paths manually after `make install`.
 
 ## Architecture
 

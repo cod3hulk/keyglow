@@ -12,6 +12,11 @@ let package = Package(
                 .copy("Resources/icon-16@2x.png"),
                 .copy("Resources/menubar-icon.svg"),
             ]
-        )
+        ),
+        .testTarget(
+            name: "KeyGlowTests",
+            dependencies: ["KeyGlow"],
+            path: "Tests/KeyGlowTests"
+        ),
     ]
 )

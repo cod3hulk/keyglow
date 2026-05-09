@@ -45,36 +45,42 @@ enum KeyLightService {
         let semaphore = DispatchSemaphore(value: 0)
         URLSession.shared.dataTask(with: request) { data, _, _ in
             defer { semaphore.signal() }
-            guard let data,
-                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let lights = json["lights"] as? [[String: Any]],
-                  let light = lights.first else { return }
-            result = LightState(
-                on: (light["on"] as? Int) == 1,
-                brightness: light["brightness"] as? Int ?? 50,
-                temperature: light["temperature"] as? Int ?? 200
-            )
+            if let data { result = parseState(data) }
         }.resume()
         semaphore.wait()
         return result
     }
 
     static func setLight(ip: String, on: Bool? = nil, brightness: Int? = nil, temperature: Int? = nil) {
-        guard let url = URL(string: "http://\(ip):\(port)/elgato/lights") else { return }
-
-        var lightDict: [String: Any] = [:]
-        if let on { lightDict["on"] = on ? 1 : 0 }
-        if let brightness { lightDict["brightness"] = max(3, min(100, brightness)) }
-        if let temperature { lightDict["temperature"] = max(143, min(344, temperature)) }
-
-        let body: [String: Any] = ["numberOfLights": 1, "lights": [lightDict]]
-        guard let data = try? JSONSerialization.data(withJSONObject: body) else { return }
+        guard let url = URL(string: "http://\(ip):\(port)/elgato/lights"),
+              let data = makeBody(on: on, brightness: brightness, temperature: temperature) else { return }
 
         var request = URLRequest(url: url, timeoutInterval: 3)
         request.httpMethod = "PUT"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = data
         URLSession.shared.dataTask(with: request) { _, _, _ in }.resume()
+    }
+
+    static func parseState(_ data: Data) -> LightState? {
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let lights = json["lights"] as? [[String: Any]],
+              let light = lights.first else { return nil }
+        return LightState(
+            on: (light["on"] as? Int) == 1,
+            brightness: light["brightness"] as? Int ?? 50,
+            temperature: light["temperature"] as? Int ?? 200
+        )
+    }
+
+    static func makeBody(on: Bool? = nil, brightness: Int? = nil, temperature: Int? = nil) -> Data? {
+        var lightDict: [String: Any] = [:]
+        if let on { lightDict["on"] = on ? 1 : 0 }
+        if let brightness { lightDict["brightness"] = max(3, min(100, brightness)) }
+        if let temperature { lightDict["temperature"] = max(143, min(344, temperature)) }
+
+        let body: [String: Any] = ["numberOfLights": 1, "lights": [lightDict]]
+        return try? JSONSerialization.data(withJSONObject: body)
     }
 
     static func temperatureToKelvin(_ apiValue: Int) -> Int {
