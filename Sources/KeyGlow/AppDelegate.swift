@@ -87,6 +87,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         autoItem.state = autoMode ? .on : .off
         menu.addItem(autoItem)
 
+        let launchItem = NSMenuItem(title: "Launch at Login",
+                                    action: #selector(toggleLaunchAtLogin),
+                                    keyEquivalent: "")
+        launchItem.target = self
+        launchItem.state = LaunchAtLogin.isEnabled ? .on : .off
+        menu.addItem(launchItem)
+
         let toggleLabel = lightOn ? "Turn Light Off" : "Turn Light On"
         let toggleItem = NSMenuItem(title: toggleLabel, action: #selector(toggleLight), keyEquivalent: "")
         toggleItem.target = self
@@ -158,6 +165,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func toggleAutoMode() {
         autoMode.toggle()
+        rebuildMenu()
+    }
+
+    @objc private func toggleLaunchAtLogin() {
+        LaunchAtLogin.setEnabled(!LaunchAtLogin.isEnabled)
         rebuildMenu()
     }
 
